@@ -1,0 +1,44 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      # Setup key
+      - name: Setup SSH key
+        run: |
+          set -eu
+          mkdir "$HOME/.ssh"
+          echo "${{ secrets.SSH_VDS }}" > "$HOME/.ssh/key"
+          chmod 600 "$HOME/.ssh/key"
+
+      # Build and push changes to the server
+      - name: Rsync project files
+        run: rsync -e "ssh -i $HOME/.ssh/key -o StrictHostKeyChecking=no" --archive --compress --delete . ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:${{ secrets.SERVER_PATH }}
+
+      # Build and run Docker container on the server
+      - name: Build and run Docker container
+        run: |
+          ssh -i $HOME/.ssh/key -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+          cd ${{ secrets.SERVER_PATH }}
+          docker build -f Dockerfile -t back .
+          docker stop back || true
+          docker rm back || true
+          docker run -d --name back -p ${{ vars.APPLICATION_PORT }}:${{ vars.BACK_PORT }} \
+            -e BACK_HOST=${{ vars.BACK_HOST }} \
+            -e BACK_PORT=${{ vars.BACK_PORT }} \
+            -e DATABASE_HOST=${{ secrets.DATABASE_HOST }} \
+            -e DATABASE_PORT=${{ secrets.DATABASE_PORT }} \
+            -e DATABASE_NAME=${{ secrets.DATABASE_NAME }} \
+            -e DATABASE_USER=${{ secrets.DATABASE_USER }} \
+            -e DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }} \
+            back
+          EOF
