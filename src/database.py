@@ -5,7 +5,7 @@ from asyncpg import Pool, create_pool
 _pool: Pool | None = None
 
 
-async def get_pool():
+async def get_pool() -> Pool:
     global _pool
 
     if not _pool:
@@ -18,3 +18,8 @@ async def get_pool():
         )
 
     return _pool
+
+
+async def close_pool() -> None:
+    if _pool:
+        await _pool.close()

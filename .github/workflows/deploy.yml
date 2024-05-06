@@ -40,5 +40,6 @@ jobs:
             -e DATABASE_NAME=${{ secrets.DATABASE_NAME }} \
             -e DATABASE_USER=${{ secrets.DATABASE_USER }} \
             -e DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }} \
+            -e JWT_ALGORITHM=${{ secrets.JWT_ALGORITHM }} \
             back
           EOF

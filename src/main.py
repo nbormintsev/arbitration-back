@@ -4,19 +4,19 @@ from os import getenv
 import uvicorn
 from fastapi import FastAPI
 
-from src.auth.router import router as auth_router
-from src.database import get_pool
+from src.auth.views import router as auth_router
+from src.database import get_pool, close_pool
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    _app.state.pool = await get_pool()
+    await get_pool()
     yield
-    await _app.state.pool.close()
+    await close_pool()
 
 
 app = FastAPI(lifespan=lifespan)
-app.include_router(auth_router)
+app.include_router(router=auth_router, prefix="/auth", tags=["Auth"])
 
 
 def start():
