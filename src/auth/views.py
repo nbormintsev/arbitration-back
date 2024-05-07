@@ -16,7 +16,7 @@ router = APIRouter(dependencies=[Depends(http_bearer)])
 
 
 @router.post(
-    path="/",
+    path="/register",
     status_code=status.HTTP_201_CREATED,
 )
 async def register_client(
@@ -62,4 +62,7 @@ async def auth_client_self_check_info(
     return {
         "login": client_data.login,
         "iat": payload.get("iat"),
+        "timezone": None,
+        "currency": None,
+        "locale": None,
     }
