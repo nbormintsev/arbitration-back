@@ -3,6 +3,7 @@ from os import getenv
 
 import uvicorn
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from src.auth.views import router as auth_router
 from src.database import get_pool, close_pool
@@ -17,6 +18,15 @@ async def lifespan(_app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 app.include_router(router=auth_router, prefix="/auth", tags=["Auth"])
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 def start():
