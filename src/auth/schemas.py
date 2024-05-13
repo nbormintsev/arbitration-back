@@ -1,16 +1,19 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, EmailStr
 
 
-class AuthClient(BaseModel):
-    login: str
+class RegisterClient(BaseModel):
+    name: str
+    email: EmailStr
     password: str
 
 
-class Client(BaseModel):
-    model_config = ConfigDict(strict=True)
+class AuthClient(BaseModel):
+    email: EmailStr
+    password: str
 
-    login: str
-    password: bytes
+
+class ClientResponse(BaseModel):
+    id: int
 
 
 class JWTData(BaseModel):

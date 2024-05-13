@@ -42,4 +42,5 @@ jobs:
             -e DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }} \
             -e JWT_ALGORITHM=${{ secrets.JWT_ALGORITHM }} \
             back
+          docker rmi $(docker images | grep "<none>" | awk '{print $3}')
           EOF
