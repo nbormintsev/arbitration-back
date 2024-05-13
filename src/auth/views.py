@@ -36,7 +36,7 @@ async def register_client(
 
 
 @router.get(path="/me")
-async def auth_client_self_check_info(
+async def get_authenticated_client_info(
     payload: dict = Depends(get_current_token_payload),
     client_data: AuthClient = Depends(service.get_current_active_auth_client),
 ):
@@ -50,7 +50,7 @@ async def auth_client_self_check_info(
 
 
 @router.post(path="/tokens")
-async def auth_client_issue_jwt(
+async def authenticate_client(
     auth_data: AuthClient = Depends(validate_client_auth)
 ) -> JWTData:
     access_token = service.create_access_token(auth_data.email)
@@ -67,7 +67,7 @@ async def auth_client_issue_jwt(
     response_model=JWTData,
     response_model_exclude_none=True,
 )
-async def auth_refresh_jwt(
+async def refresh_access_token(
     client_data: AuthClient = Depends(get_current_auth_client_for_refresh),
 ):
     access_token = create_access_token(client_data.email)
