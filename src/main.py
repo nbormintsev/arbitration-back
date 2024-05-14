@@ -2,11 +2,15 @@ from contextlib import asynccontextmanager
 from os import getenv
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBearer
 
 from src.auth.views import router as auth_router
+from src.clients.views import router as clients_router
 from src.database import get_pool, close_pool
+
+http_bearer = HTTPBearer(auto_error=False)
 
 
 @asynccontextmanager
@@ -17,7 +21,18 @@ async def lifespan(_app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
-app.include_router(router=auth_router, prefix="/auth", tags=["Auth"])
+app.include_router(
+    router=auth_router,
+    dependencies=[Depends(http_bearer)],
+    prefix="/auth",
+    tags=["Auth"],
+)
+app.include_router(
+    router=clients_router,
+    dependencies=[Depends(http_bearer)],
+    prefix="/clients",
+    tags=["Clients"],
+)
 
 
 app.add_middleware(

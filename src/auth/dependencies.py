@@ -5,9 +5,8 @@ from fastapi.security import OAuth2PasswordBearer
 from jwt import InvalidTokenError
 
 from src.auth.crud import get_client_by_email
-from src.auth.schemas import ClientRegistration, ClientAuthentication
-from src.auth.service import is_client_banned
-from src.auth.utils import decode_jwt, validate_password
+from src.auth.schemas import ClientRegistration
+from src.auth.utils import decode_jwt
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/tokens")
 
@@ -27,7 +26,7 @@ async def validate_client_creation(
 
 async def get_current_token_payload(
     token: str = Depends(oauth2_scheme)
-):
+) -> dict[str, Any]:
     try:
         token_payload = decode_jwt(token)
     except InvalidTokenError:
@@ -37,29 +36,3 @@ async def get_current_token_payload(
         )
 
     return token_payload
-
-
-async def validate_client_authentication(
-    client_data: ClientAuthentication,
-) -> ClientAuthentication:
-    client: dict[str, Any] | None = await get_client_by_email(client_data.email)
-
-    if not client:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid login.",
-        )
-
-    if is_client_banned(client):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="You have been banned.",
-        )
-
-    if not validate_password(client_data.password, client["password_hash"]):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid password.",
-        )
-
-    return client_data

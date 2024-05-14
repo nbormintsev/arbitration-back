@@ -3,22 +3,6 @@ from typing import Any
 from src.database import get_pool
 
 
-async def get_client_by_email(email: str) -> dict[str, Any] | None:
-    pool = await get_pool()
-
-    return await pool.fetchrow(
-        """
-        select
-            *
-        from
-            clients
-        where
-            email = $1
-        """,
-        email
-    )
-
-
 async def add_client(
     email: str,
     name: str,
@@ -42,4 +26,20 @@ async def add_client(
         email,
         name,
         password_hash
+    )
+
+
+async def get_client_by_email(client_email: str) -> dict[str, Any] | None:
+    pool = await get_pool()
+
+    return await pool.fetchrow(
+        """
+        select
+            *
+        from
+            clients
+        where
+            email = $1
+        """,
+        client_email
     )

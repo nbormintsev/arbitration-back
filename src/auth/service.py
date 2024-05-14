@@ -5,8 +5,9 @@ from fastapi import HTTPException, status
 
 from src.auth.config import auth_config
 from src.auth.crud import add_client, get_client_by_email
-from src.auth.schemas import ClientRegistration
-from src.auth.utils import hash_password, encode_jwt
+from src.auth.schemas import ClientRegistration, ClientAuthentication
+from src.auth.utils import hash_password, encode_jwt, validate_password
+from src.crud import get_client_by_id
 
 
 async def create_client(
@@ -44,7 +45,7 @@ def is_client_banned(
 
 
 async def get_current_active_auth_client(token_payload: dict) -> dict[str, Any]:
-    client: dict[str, Any] | None = await get_client_by_email(
+    client: dict[str, Any] | None = await get_client_by_id(
         token_payload.get("sub"),
     )
 
@@ -63,6 +64,32 @@ async def get_current_active_auth_client(token_payload: dict) -> dict[str, Any]:
     return client
 
 
+async def auth_client(
+    client_data: ClientAuthentication,
+) -> dict[str, Any]:
+    client: dict[str, Any] | None = await get_client_by_email(client_data.email)
+
+    if not client:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid login.",
+        )
+
+    if is_client_banned(client):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You have been banned.",
+        )
+
+    if not validate_password(client_data.password, client["password_hash"]):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid password.",
+        )
+
+    return client
+
+
 def create_jwt(token_type: str, token_data: dict) -> str:
     payload = {"type": token_type}
     payload.update(token_data)
@@ -70,10 +97,10 @@ def create_jwt(token_type: str, token_data: dict) -> str:
     return encode_jwt(payload)
 
 
-def create_access_token(email: str) -> str:
+def create_access_token(client_id: str) -> str:
     utc_now = datetime.utcnow()
     token_data = {
-        "sub": email,
+        "sub": client_id,
         "iat": utc_now,
         "exp": utc_now + timedelta(
             minutes=auth_config.access_token_expiration_time,
@@ -86,10 +113,10 @@ def create_access_token(email: str) -> str:
     )
 
 
-def create_refresh_token(email: str) -> str:
+def create_refresh_token(client_id: int) -> str:
     utc_now = datetime.utcnow()
     token_data = {
-        "sub": email,
+        "sub": client_id,
         "exp": utc_now + timedelta(
             days=auth_config.refresh_token_expiration_time,
         ),

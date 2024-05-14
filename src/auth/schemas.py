@@ -14,7 +14,7 @@ class ClientRegistration(BaseModel):
 class ClientInfoResponse(BaseModel):
     email: EmailStr
     name: str
-    iat: str
+    iat: int
 
 
 class ClientAuthentication(BaseModel):
