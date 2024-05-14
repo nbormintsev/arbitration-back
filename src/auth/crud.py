@@ -43,36 +43,3 @@ async def add_client(
         name,
         password_hash
     )
-
-
-async def get_client_by_id(client_id: int) -> dict[str, Any]:
-    pool = await get_pool()
-
-    return await pool.fetchrow(
-        """
-        select
-            *
-        from
-            clients
-        where
-            id = $1
-        """,
-        client_id
-    )
-
-
-async def get_client_status(email: str) -> bool:
-    pool = await get_pool()
-
-    return await pool.fetchval(
-        """
-        select (
-            is_banned
-        )
-        from
-            clients
-        where
-            email = $1
-        """,
-        email
-    )

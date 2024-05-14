@@ -1,20 +1,27 @@
-from fastapi import APIRouter, status, Depends
+from typing import Any
+
+from fastapi import APIRouter, Depends, status
 from fastapi.security import HTTPBearer
 
-from src.auth import service
 from src.auth.dependencies import (
     validate_client_creation,
-    validate_client_auth,
     get_current_token_payload,
-    get_current_auth_client_for_refresh,
+    validate_client_authentication,
 )
 from src.auth.schemas import (
-    ClientResponse,
-    RegisterClient,
-    AuthClient,
-    JWTData,
+    ClientRegistrationResponse,
+    ClientRegistration,
+    ClientInfoResponse,
+    ClientAuthentication,
+    JWTResponse,
 )
-from src.auth.service import create_access_token
+from src.auth.service import (
+    create_client,
+    validate_token_type,
+    get_current_active_auth_client,
+    create_access_token,
+    create_refresh_token,
+)
 
 http_bearer = HTTPBearer(auto_error=False)
 router = APIRouter(dependencies=[Depends(http_bearer)])
@@ -23,40 +30,49 @@ router = APIRouter(dependencies=[Depends(http_bearer)])
 @router.post(
     path="/register",
     status_code=status.HTTP_201_CREATED,
-    response_model=ClientResponse,
+    response_model=ClientRegistrationResponse,
 )
 async def register_client(
-    client_data: RegisterClient = Depends(validate_client_creation),
-) -> dict[str, int]:
-    client_id = await service.register_client(client_data)
+    client_data: ClientRegistration = Depends(validate_client_creation),
+) -> ClientRegistrationResponse:
+    client_id: int = await create_client(client_data)
 
-    return {
-        "id": client_id,
-    }
+    return ClientRegistrationResponse(id=client_id)
 
 
-@router.get(path="/me")
+@router.get(path="/me", response_model=ClientInfoResponse)
 async def get_authenticated_client_info(
-    payload: dict = Depends(get_current_token_payload),
-    client_data: AuthClient = Depends(service.get_current_active_auth_client),
-):
-    return {
-        "email": client_data.email,
-        "iat": payload.get("iat"),
-        "timezone": None,
-        "currency": None,
-        "locale": None,
-    }
+    token_payload: dict[str, Any] = Depends(get_current_token_payload),
+) -> ClientInfoResponse:
+    validate_token_type("access", token_payload.get("type"))
+    client: dict[str, Any] | None = await get_current_active_auth_client(
+        token_payload,
+    )
+
+    return ClientInfoResponse(
+        email=client.get("email"),
+        name=client.get("name"),
+        iat=token_payload.get("iat")
+    )
+
+    # return {
+    #     "email": client_data.email,
+    #     "name": client_data.name,
+    #     "iat": payload.get("iat"),
+    #     "timezone": None,
+    #     "currency": None,
+    #     "locale": None,
+    # }
 
 
-@router.post(path="/tokens")
+@router.post(path="/tokens", response_model=JWTResponse)
 async def authenticate_client(
-    auth_data: AuthClient = Depends(validate_client_auth)
-) -> JWTData:
-    access_token = service.create_access_token(auth_data.email)
-    refresh_token = service.create_refresh_token(auth_data.email)
+    auth_data: ClientAuthentication = Depends(validate_client_authentication)
+) -> JWTResponse:
+    access_token: str = create_access_token(auth_data.email)
+    refresh_token: str = create_refresh_token(auth_data.email)
 
-    return JWTData(
+    return JWTResponse(
         access_token=access_token,
         refresh_token=refresh_token,
     )
@@ -64,14 +80,18 @@ async def authenticate_client(
 
 @router.put(
     path="/tokens",
-    response_model=JWTData,
+    response_model=JWTResponse,
     response_model_exclude_none=True,
 )
 async def refresh_access_token(
-    client_data: AuthClient = Depends(get_current_auth_client_for_refresh),
+    token_payload: Any = Depends(get_current_token_payload),
 ):
-    access_token = create_access_token(client_data.email)
+    validate_token_type("refresh", token_payload.get("type"))
+    client: dict[str, Any] | None = await get_current_active_auth_client(
+        token_payload,
+    )
+    access_token: str = create_access_token(client.get("email"))
 
-    return JWTData(
+    return JWTResponse(
         access_token=access_token,
     )

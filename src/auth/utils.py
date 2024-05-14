@@ -63,7 +63,7 @@ def encode_jwt(
 
 def decode_jwt(
     token: str | bytes,
-) -> dict:
+):
     decoded = jwt.decode(
         jwt=token,
         key=_public_key,

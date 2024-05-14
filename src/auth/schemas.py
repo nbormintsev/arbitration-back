@@ -1,22 +1,28 @@
 from pydantic import BaseModel, EmailStr
 
 
-class RegisterClient(BaseModel):
-    name: str
-    email: EmailStr
-    password: str
-
-
-class AuthClient(BaseModel):
-    email: EmailStr
-    password: str
-
-
-class ClientResponse(BaseModel):
+class ClientRegistrationResponse(BaseModel):
     id: int
 
 
-class JWTData(BaseModel):
+class ClientRegistration(BaseModel):
+    email: EmailStr
+    name: str
+    password: str
+
+
+class ClientInfoResponse(BaseModel):
+    email: EmailStr
+    name: str
+    iat: str
+
+
+class ClientAuthentication(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class JWTResponse(BaseModel):
     access_token: str
     refresh_token: str | None = None
     token_type: str = "Bearer"

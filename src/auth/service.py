@@ -1,22 +1,66 @@
 from datetime import datetime, timedelta
+from typing import Any
 
-from fastapi import Depends, HTTPException, status
+from fastapi import HTTPException, status
 
 from src.auth.config import auth_config
-from src.auth.crud import add_client, get_client_status
-from src.auth.dependencies import get_current_auth_client
-from src.auth.schemas import RegisterClient, AuthClient
+from src.auth.crud import add_client, get_client_by_email
+from src.auth.schemas import ClientRegistration
 from src.auth.utils import hash_password, encode_jwt
 
 
-async def register_client(
-    client_data: RegisterClient,
+async def create_client(
+    client_data: ClientRegistration,
 ) -> int:
     return await add_client(
         email=client_data.email,
         name=client_data.name,
         password_hash=hash_password(client_data.password),
     )
+
+
+def validate_token_type(
+    token_type: str,
+    payload_token_type: str,
+) -> bool:
+    if payload_token_type == token_type:
+        return True
+
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid token type."
+    )
+
+
+def is_client_banned(
+    client: dict[str, Any],
+) -> bool:
+    is_banned: bool | None = client.get("is_banned")
+
+    if is_banned:
+        return True
+
+    return False
+
+
+async def get_current_active_auth_client(token_payload: dict) -> dict[str, Any]:
+    client: dict[str, Any] | None = await get_client_by_email(
+        token_payload.get("sub"),
+    )
+
+    if not client:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token is invalid."
+        )
+
+    if is_client_banned(client):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You have been banned."
+        )
+
+    return client
 
 
 def create_jwt(token_type: str, token_data: dict) -> str:
@@ -54,16 +98,4 @@ def create_refresh_token(email: str) -> str:
     return create_jwt(
         token_type="refresh",
         token_data=token_data,
-    )
-
-
-async def get_current_active_auth_client(
-    client_data: AuthClient = Depends(get_current_auth_client)
-):
-    if not await get_client_status(client_data.email):
-        return client_data
-
-    raise HTTPException(
-        status_code=status.HTTP_403_FORBIDDEN,
-        detail="User inactive. "
     )
