@@ -8,16 +8,18 @@ from fastapi.security import HTTPBearer
 
 from src.auth.views import router as auth_router
 from src.clients.views import router as clients_router
-from src.database import get_pool, close_pool
+from src.config import keys_manager
+from src.database import database_manager
 
 http_bearer = HTTPBearer(auto_error=False)
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    await get_pool()
+    keys_manager.generate_keys()
+    await database_manager.get_pool()
     yield
-    await close_pool()
+    await database_manager.close_pool()
 
 
 app = FastAPI(lifespan=lifespan)

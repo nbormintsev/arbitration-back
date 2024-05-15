@@ -1,13 +1,11 @@
 from datetime import timedelta, datetime
 from typing import Any
 
-import pytz
-
-from src.database import get_pool
+from src.database import database_manager
 
 
 async def get_client_settings_by_id(client_id: int) -> dict[str, Any] | None:
-    pool = await get_pool()
+    pool = await database_manager.get_pool()
 
     return await pool.fetchrow(
         """
@@ -28,7 +26,7 @@ async def create_client_settings(
     language: str,
     timezone_offset: timedelta,
 ) -> int:
-    pool = await get_pool()
+    pool = await database_manager.get_pool()
 
     return await pool.fetchval(
         """
@@ -57,7 +55,7 @@ async def update_client_settings(
     language: str,
     timezone_offset: timedelta,
 ) -> int:
-    pool = await get_pool()
+    pool = await database_manager.get_pool()
 
     return await pool.fetchval(
         """
@@ -85,7 +83,7 @@ async def create_client_device(
     device_name: str,
     last_online: datetime,
 ) -> int:
-    pool = await get_pool()
+    pool = await database_manager.get_pool()
 
     return await pool.fetchval(
         """
@@ -109,7 +107,7 @@ async def create_client_device(
 
 
 async def get_client_devices_by_id(client_id: int) -> list:
-    pool = await get_pool()
+    pool = await database_manager.get_pool()
 
     return await pool.fetch(
         """
@@ -125,7 +123,7 @@ async def get_client_devices_by_id(client_id: int) -> list:
 
 
 async def remove_client_device(device_id: int) -> dict[str, Any] | None:
-    pool = await get_pool()
+    pool = await database_manager.get_pool()
 
     return await pool.fetchrow(
         """
@@ -144,7 +142,7 @@ async def update_client_password(
     client_id: int,
     password_hash: bytes,
 ) -> int:
-    pool = await get_pool()
+    pool = await database_manager.get_pool()
 
     return await pool.fetchval(
         """

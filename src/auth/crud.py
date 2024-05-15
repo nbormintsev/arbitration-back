@@ -1,6 +1,6 @@
 from typing import Any
 
-from src.database import get_pool
+from src.database import database_manager
 
 
 async def add_client(
@@ -8,7 +8,7 @@ async def add_client(
     name: str,
     password_hash: bytes,
 ) -> int:
-    pool = await get_pool()
+    pool = await database_manager.get_pool()
 
     return await pool.fetchval(
         """
@@ -30,7 +30,7 @@ async def add_client(
 
 
 async def get_client_by_email(client_email: str) -> dict[str, Any] | None:
-    pool = await get_pool()
+    pool = await database_manager.get_pool()
 
     return await pool.fetchrow(
         """

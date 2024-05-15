@@ -4,30 +4,9 @@ from typing import Any
 
 import bcrypt
 import jwt
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.primitives.asymmetric.rsa import (
-    RSAPrivateKey,
-    RSAPublicKey,
-)
 
 from src.auth.config import auth_config
-
-
-def generate_private_key() -> RSAPrivateKey:
-    return rsa.generate_private_key(
-        public_exponent=65537,
-        key_size=2048,
-        backend=default_backend()
-    )
-
-
-def generate_public_key(private_key: RSAPrivateKey) -> RSAPublicKey:
-    return private_key.public_key()
-
-
-_private_key: RSAPrivateKey = generate_private_key()
-_public_key: RSAPublicKey = generate_public_key(_private_key)
+from src.config import keys_manager
 
 
 def hash_password(password: str) -> bytes:
@@ -58,7 +37,7 @@ def encode_jwt(
 
     return jwt.encode(
         payload=to_encode,
-        key=_private_key,
+        key=keys_manager.private_key,
         algorithm=auth_config.algorithm,
     )
 
@@ -68,6 +47,6 @@ def decode_jwt(
 ) -> dict[str, Any]:
     return jwt.decode(
         jwt=token,
-        key=_public_key,
+        key=keys_manager.public_key,
         algorithms=[auth_config.algorithm],
     )
