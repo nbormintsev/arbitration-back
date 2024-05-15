@@ -28,7 +28,7 @@ async def get_current_token_payload(
     token: str = Depends(oauth2_scheme)
 ) -> dict[str, Any]:
     try:
-        token_payload = decode_jwt(token)
+        token_payload: dict[str, Any] = decode_jwt(token)
     except InvalidTokenError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

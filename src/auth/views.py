@@ -19,7 +19,8 @@ from src.auth.service import (
     validate_token_type,
     get_current_active_auth_client,
     create_access_token,
-    create_refresh_token, auth_client,
+    create_refresh_token,
+    auth_client,
 )
 
 http_bearer = HTTPBearer(auto_error=False)

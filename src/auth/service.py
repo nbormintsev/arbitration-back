@@ -90,39 +90,42 @@ async def auth_client(
     return client
 
 
-def create_jwt(token_type: str, token_data: dict) -> str:
+def create_jwt(
+    token_type: str,
+    token_data: dict,
+    expiration_time: timedelta,
+) -> str:
     payload = {"type": token_type}
     payload.update(token_data)
 
-    return encode_jwt(payload)
+    return encode_jwt(payload, expiration_time)
 
 
 def create_access_token(client_id: str) -> str:
-    utc_now = datetime.utcnow()
     token_data = {
         "sub": client_id,
-        "iat": utc_now,
-        "exp": utc_now + timedelta(
-            minutes=auth_config.access_token_expiration_time,
-        ),
     }
+    expiration_time = timedelta(
+        minutes=auth_config.access_token_expiration_time,
+    )
 
     return create_jwt(
         token_type="access",
         token_data=token_data,
+        expiration_time=expiration_time,
     )
 
 
 def create_refresh_token(client_id: int) -> str:
-    utc_now = datetime.utcnow()
     token_data = {
         "sub": client_id,
-        "exp": utc_now + timedelta(
-            days=auth_config.refresh_token_expiration_time,
-        ),
     }
+    expiration_time = timedelta(
+        days=auth_config.refresh_token_expiration_time,
+    )
 
     return create_jwt(
         token_type="refresh",
         token_data=token_data,
+        expiration_time=expiration_time,
     )

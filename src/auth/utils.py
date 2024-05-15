@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime, timedelta
+from typing import Any
 
 import bcrypt
 import jwt
@@ -43,11 +44,12 @@ def validate_password(password: str, hashed_password: bytes) -> bool:
 
 
 def encode_jwt(
-    payload: dict,
+    payload: dict[str, Any],
+    expiration_time: timedelta,
 ) -> str:
     to_encode = payload.copy()
     utc_now = datetime.utcnow()
-    exp = utc_now + timedelta(minutes=auth_config.access_token_expiration_time)
+    exp = utc_now + expiration_time
     to_encode.update(
         jti=str(uuid.uuid4()),
         iat=utc_now,
@@ -63,11 +65,9 @@ def encode_jwt(
 
 def decode_jwt(
     token: str | bytes,
-):
-    decoded = jwt.decode(
+) -> dict[str, Any]:
+    return jwt.decode(
         jwt=token,
         key=_public_key,
         algorithms=[auth_config.algorithm],
     )
-
-    return decoded
