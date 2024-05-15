@@ -1,7 +1,6 @@
 from typing import Any
 
 from fastapi import APIRouter, Depends, status
-from fastapi.security import HTTPBearer
 
 from src.auth.dependencies import (
     validate_client_creation,
@@ -23,8 +22,7 @@ from src.auth.service import (
     auth_client,
 )
 
-http_bearer = HTTPBearer(auto_error=False)
-router = APIRouter(dependencies=[Depends(http_bearer)])
+router = APIRouter()
 
 
 @router.post(
