@@ -34,3 +34,9 @@ class DeviceCreation(BaseModel):
     client_id: int
     device_hash: bytes
     device_name: str
+
+
+class DeviceInfo(BaseModel):
+    id: int
+    device_name: str
+    last_login_date: datetime

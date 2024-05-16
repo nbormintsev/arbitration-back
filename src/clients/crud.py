@@ -106,7 +106,9 @@ async def create_client_device(
     )
 
 
-async def get_client_devices_by_id(client_id: int) -> list:
+async def get_client_devices_by_id(
+    client_id: int,
+) -> list[dict[str, Any]]:
     pool = await database_manager.get_pool()
 
     return await pool.fetch(

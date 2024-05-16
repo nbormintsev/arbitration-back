@@ -8,7 +8,6 @@ from src.auth.service import validate_token_type
 from src.clients.crud import (
     create_client_settings,
     create_client_device,
-    remove_client_device,
 )
 from src.clients.schemas import (
     SettingsCreationResponse,
@@ -17,12 +16,13 @@ from src.clients.schemas import (
     SettingsUpdate,
     DeviceCreationResponse,
     DeviceCreation,
+    DeviceInfo,
 )
 from src.clients.service import (
     get_current_auth_client_settings,
     update_current_auth_client_settings,
     get_current_auth_client_devices,
-    change_client_password,
+    change_client_password, remove_current_auth_client_device,
 )
 
 router = APIRouter()
@@ -98,9 +98,9 @@ async def add_new_client_device(
 @router.get(path="/devices")
 async def get_authenticated_client_devices(
     token_payload: dict[str, Any] = Depends(get_current_token_payload),
-) -> dict[int, dict]:
+) -> list[DeviceInfo]:
     validate_token_type("access", token_payload.get("type"))
-    client_devices: dict[int, dict] = await get_current_auth_client_devices(
+    client_devices: list[DeviceInfo] = await get_current_auth_client_devices(
         token_payload,
     )
 
@@ -111,13 +111,10 @@ async def get_authenticated_client_devices(
 async def remove_authenticated_client_device(
     device_id: int,
     token_payload: dict[str, Any] = Depends(get_current_token_payload),
-):
+) -> DeviceInfo:
     validate_token_type("access", token_payload.get("type"))
-    device: dict[str, Any] = await remove_client_device(
-        device_id
-    )
 
-    return device
+    return await remove_current_auth_client_device(device_id)
 
 
 @router.put(
