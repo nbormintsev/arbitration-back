@@ -22,6 +22,12 @@ class ClientAuthentication(BaseModel):
     password: str
 
 
+class ValidatedClientAuthentication(BaseModel):
+    id: int
+    email: EmailStr
+    password: str
+
+
 class JWTResponse(BaseModel):
     access_token: str
     refresh_token: str | None = None

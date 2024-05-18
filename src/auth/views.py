@@ -12,6 +12,7 @@ from src.auth.schemas import (
     ClientRegistration,
     ClientInfoResponse,
     ClientAuthentication,
+    ValidatedClientAuthentication,
     JWTResponse,
 )
 from src.auth.service import (
@@ -53,11 +54,12 @@ async def get_authenticated_client_info(
 
 @router.post(path="/tokens", response_model=JWTResponse)
 async def authenticate_client(
-    auth_data: ClientAuthentication,
+    auth_data: ClientAuthentication | ValidatedClientAuthentication = Depends(
+        auth_client,
+    ),
 ) -> JWTResponse:
-    client: dict[str, Any] = await auth_client(auth_data)
-    access_token: str = create_access_token(client.get("id"))
-    refresh_token: str = create_refresh_token(client.get("id"))
+    access_token: str = create_access_token(auth_data.id)
+    refresh_token: str = create_refresh_token(auth_data.id)
 
     return JWTResponse(
         access_token=access_token,

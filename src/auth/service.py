@@ -5,7 +5,11 @@ from fastapi import HTTPException, status
 
 from src.auth.config import auth_config
 from src.auth.crud import add_client, get_client_by_email
-from src.auth.schemas import ClientRegistration, ClientAuthentication
+from src.auth.schemas import (
+    ClientRegistration,
+    ClientAuthentication,
+    ValidatedClientAuthentication,
+)
 from src.auth.utils import hash_password, encode_jwt, validate_password
 from src.crud import get_client_by_id
 
@@ -53,7 +57,7 @@ async def get_current_active_auth_client(token_payload: dict) -> dict[str, Any]:
 
 async def auth_client(
     client_data: ClientAuthentication,
-) -> dict[str, Any]:
+) -> ValidatedClientAuthentication:
     client: dict[str, Any] | None = await get_client_by_email(client_data.email)
 
     if not client:
@@ -74,7 +78,11 @@ async def auth_client(
             detail="Invalid password.",
         )
 
-    return client
+    return ValidatedClientAuthentication(
+        id=client.get("id"),
+        email=client_data.email,
+        password=client_data.password,
+    )
 
 
 def create_jwt(
@@ -88,7 +96,7 @@ def create_jwt(
     return encode_jwt(payload, expiration_time)
 
 
-def create_access_token(client_id: str) -> str:
+def create_access_token(client_id: int) -> str:
     token_data = {
         "sub": client_id,
     }
