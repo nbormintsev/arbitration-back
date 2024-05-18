@@ -20,19 +20,6 @@ async def create_client(
     )
 
 
-def validate_token_type(
-    token_type: str,
-    payload_token_type: str,
-) -> bool:
-    if payload_token_type == token_type:
-        return True
-
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Invalid token type."
-    )
-
-
 def is_client_banned(
     client: dict[str, Any],
 ) -> bool:

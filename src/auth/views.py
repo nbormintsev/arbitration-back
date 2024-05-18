@@ -4,7 +4,8 @@ from fastapi import APIRouter, Depends, status
 
 from src.auth.dependencies import (
     validate_client_creation,
-    get_current_token_payload,
+    validate_access_token,
+    validate_refresh_token,
 )
 from src.auth.schemas import (
     ClientRegistrationResponse,
@@ -15,7 +16,6 @@ from src.auth.schemas import (
 )
 from src.auth.service import (
     create_client,
-    validate_token_type,
     get_current_active_auth_client,
     create_access_token,
     create_refresh_token,
@@ -40,9 +40,8 @@ async def register_client(
 
 @router.get(path="/me", response_model=ClientInfoResponse)
 async def get_authenticated_client_info(
-    token_payload: dict[str, Any] = Depends(get_current_token_payload),
+    token_payload: dict[str, Any] = Depends(validate_access_token),
 ) -> ClientInfoResponse:
-    validate_token_type("access", token_payload.get("type"))
     client: dict[str, Any] = await get_current_active_auth_client(token_payload)
 
     return ClientInfoResponse(
@@ -72,9 +71,8 @@ async def authenticate_client(
     response_model_exclude_none=True,
 )
 async def refresh_access_token(
-    token_payload: dict[str, Any] = Depends(get_current_token_payload),
+    token_payload: dict[str, Any] = Depends(validate_refresh_token),
 ):
-    validate_token_type("refresh", token_payload.get("type"))
     client: dict[str, Any] = await get_current_active_auth_client(token_payload)
     access_token: str = create_access_token(client.get("id"))
 

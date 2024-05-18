@@ -124,7 +124,10 @@ async def get_client_devices_by_id(
     )
 
 
-async def remove_client_device(device_id: int) -> dict[str, Any] | None:
+async def remove_client_device(
+    client_id: int,
+    device_id: int,
+) -> dict[str, Any] | None:
     pool = await database_manager.get_pool()
 
     return await pool.fetchrow(
@@ -132,11 +135,12 @@ async def remove_client_device(device_id: int) -> dict[str, Any] | None:
         delete from
             client_devices
         where
-            id = $1
+            id = $1 and client = $2
         returning
             *
         """,
-        device_id
+        device_id,
+        client_id
     )
 
 

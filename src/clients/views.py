@@ -3,8 +3,7 @@ from typing import Any
 
 from fastapi import APIRouter, status, Depends
 
-from src.auth.dependencies import get_current_token_payload
-from src.auth.service import validate_token_type
+from src.auth.dependencies import validate_access_token
 from src.clients.crud import (
     create_client_settings,
     create_client_device,
@@ -48,9 +47,8 @@ async def add_new_client_settings(
 
 @router.get(path="/settings", response_model=SettingsInfoResponse)
 async def get_authenticated_client_settings(
-    token_payload: dict[str, Any] = Depends(get_current_token_payload),
+    token_payload: dict[str, Any] = Depends(validate_access_token),
 ) -> SettingsInfoResponse:
-    validate_token_type("access", token_payload.get("type"))
     client_settings: dict[str, Any] = await get_current_auth_client_settings(
         token_payload,
     )
@@ -65,9 +63,8 @@ async def get_authenticated_client_settings(
 @router.put(path="/settings", response_model=SettingsCreationResponse)
 async def update_authenticated_client_settings(
     settings: SettingsUpdate,
-    token_payload: dict[str, Any] = Depends(get_current_token_payload),
+    token_payload: dict[str, Any] = Depends(validate_access_token),
 ) -> SettingsCreationResponse:
-    validate_token_type("access", token_payload.get("type"))
     settings_id: int = await update_current_auth_client_settings(
         settings,
         token_payload,
@@ -97,9 +94,8 @@ async def add_new_client_device(
 
 @router.get(path="/devices")
 async def get_authenticated_client_devices(
-    token_payload: dict[str, Any] = Depends(get_current_token_payload),
+    token_payload: dict[str, Any] = Depends(validate_access_token),
 ) -> list[DeviceInfo]:
-    validate_token_type("access", token_payload.get("type"))
     client_devices: list[DeviceInfo] = await get_current_auth_client_devices(
         token_payload,
     )
@@ -110,11 +106,10 @@ async def get_authenticated_client_devices(
 @router.delete(path="/devices")
 async def remove_authenticated_client_device(
     device_id: int,
-    token_payload: dict[str, Any] = Depends(get_current_token_payload),
+    token_payload: dict[str, Any] = Depends(validate_access_token),
 ) -> DeviceInfo:
-    validate_token_type("access", token_payload.get("type"))
 
-    return await remove_current_auth_client_device(device_id)
+    return await remove_current_auth_client_device(token_payload, device_id)
 
 
 @router.put(
@@ -123,9 +118,8 @@ async def remove_authenticated_client_device(
 )
 async def change_authenticated_client_password(
     password: str,
-    token_payload: dict[str, Any] = Depends(get_current_token_payload),
+    token_payload: dict[str, Any] = Depends(validate_access_token),
 ) -> SettingsCreationResponse:
-    validate_token_type("access", token_payload.get("type"))
     client_id = await change_client_password(
         token_payload.get("sub"),
         password,

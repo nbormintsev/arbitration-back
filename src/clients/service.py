@@ -71,8 +71,14 @@ async def get_current_auth_client_devices(
     ]
 
 
-async def remove_current_auth_client_device(device_id: int) -> DeviceInfo:
-    device: dict[str, Any] = await remove_client_device(device_id)
+async def remove_current_auth_client_device(
+    token_payload: dict[str, Any],
+    device_id: int,
+) -> DeviceInfo:
+    device: dict[str, Any] = await remove_client_device(
+        token_payload.get("sub"),
+        device_id,
+    )
 
     return DeviceInfo(
         id=device.get("id"),

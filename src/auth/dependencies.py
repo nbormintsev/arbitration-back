@@ -36,3 +36,31 @@ async def get_current_token_payload(
         )
 
     return token_payload
+
+
+def validate_access_token(
+    token_payload: dict[str, Any] = Depends(get_current_token_payload),
+) -> dict[str, Any]:
+    token_type: str | None = token_payload.get("type")
+
+    if token_type == "access":
+        return token_payload
+
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid token type."
+    )
+
+
+def validate_refresh_token(
+    token_payload: dict[str, Any] = Depends(get_current_token_payload),
+) -> dict[str, Any]:
+    token_type: str | None = token_payload.get("type")
+
+    if token_type == "refresh":
+        return token_payload
+
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid token type."
+    )
