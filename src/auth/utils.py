@@ -6,7 +6,7 @@ import bcrypt
 import jwt
 
 from src.auth.config import auth_config
-from src.config import keys_manager
+from src.security import keys_manager
 
 
 def hash_password(password: str) -> bytes:

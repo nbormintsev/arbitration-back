@@ -8,7 +8,7 @@ from fastapi.security import HTTPBearer
 
 from src.auth.views import router as auth_router
 from src.clients.views import router as clients_router
-from src.config import keys_manager
+from src.security import keys_manager
 from src.database import database_manager
 
 http_bearer = HTTPBearer(auto_error=False)
