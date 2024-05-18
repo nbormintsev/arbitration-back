@@ -117,12 +117,14 @@ async def remove_authenticated_client_device(
     response_model=SettingsCreationResponse,
 )
 async def change_authenticated_client_password(
-    password: str,
+    current_password: str,
+    new_password: str,
     token_payload: dict[str, Any] = Depends(validate_access_token),
 ) -> SettingsCreationResponse:
     client_id = await change_client_password(
-        token_payload.get("sub"),
-        password,
+        client_id=token_payload.get("sub"),
+        current_password=current_password,
+        new_password=new_password,
     )
 
     return SettingsCreationResponse(id=client_id)

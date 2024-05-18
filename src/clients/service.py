@@ -2,7 +2,7 @@ from typing import Any
 
 from fastapi import HTTPException, status
 
-from src.auth.utils import hash_password
+from src.auth.utils import hash_password, validate_password
 from src.clients.crud import (
     get_client_settings_by_id,
     update_client_settings,
@@ -11,6 +11,7 @@ from src.clients.crud import (
     update_client_password,
 )
 from src.clients.schemas import SettingsUpdate, DeviceInfo
+from src.crud import get_client_by_id
 
 
 async def get_current_auth_client_settings(
@@ -89,9 +90,21 @@ async def remove_current_auth_client_device(
 
 async def change_client_password(
     client_id: int,
-    password: str,
+    current_password: str,
+    new_password: str,
 ) -> int:
+    client_in_db: dict[str, Any] | None = await get_client_by_id(client_id)
+
+    if not validate_password(
+        current_password,
+        client_in_db.get("password_hash"),
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Incorrect password."
+        )
+
     return await update_client_password(
         client_id,
-        hash_password(password),
+        hash_password(new_password),
     )
