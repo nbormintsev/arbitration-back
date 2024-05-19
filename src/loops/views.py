@@ -15,18 +15,18 @@ update_event = Event()
 @router.websocket(path="/ws")
 async def get_loops(
     websocket: WebSocket,
-    token: str = Query(...),
+    # token: str = Query(...),
 ):
     await websocket.accept()
 
     try:
-        token_payload = get_current_token_payload(token)
-        client_in_db: dict[str, Any] | None = await get_client_by_id(
-            token_payload.get("sub"),
-        )
-
-        if not client_in_db:
-            await websocket.close()
+        # token_payload = get_current_token_payload(token)
+        # client_in_db: dict[str, Any] | None = await get_client_by_id(
+        #     token_payload.get("sub"),
+        # )
+        #
+        # if not client_in_db:
+        #     await websocket.close()
 
         active_connections.append(websocket)
         await websocket.send_json(await get_all_loops())
