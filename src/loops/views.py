@@ -26,10 +26,7 @@ async def get_loops(
         )
 
         if not client_in_db:
-            raise WebSocketDisconnect(
-                code=status.HTTP_401_UNAUTHORIZED,
-                reason="Invalid token."
-            )
+            await websocket.close()
 
         active_connections.append(websocket)
         await websocket.send_json(await get_all_loops())
