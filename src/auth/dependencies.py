@@ -24,7 +24,7 @@ async def validate_client_creation(
     return client_data
 
 
-async def get_current_token_payload(
+def get_current_token_payload(
     token: str = Depends(oauth2_scheme)
 ) -> dict[str, Any]:
     try:

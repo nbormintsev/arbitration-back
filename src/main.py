@@ -8,6 +8,7 @@ from fastapi.security import HTTPBearer
 
 from src.auth.views import router as auth_router
 from src.clients.views import router as clients_router
+from src.loops.views import router as loops_router
 from src.security import keys_manager
 from src.database import database_manager
 
@@ -34,6 +35,12 @@ app.include_router(
     dependencies=[Depends(http_bearer)],
     prefix="/clients",
     tags=["Clients"],
+)
+app.include_router(
+    router=loops_router,
+    dependencies=[Depends(http_bearer)],
+    prefix="/loops",
+    tags=["Loops"]
 )
 
 
