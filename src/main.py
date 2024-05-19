@@ -12,7 +12,7 @@ from src.loops.views import router as loops_router
 from src.security import keys_manager
 from src.database import database_manager
 
-http_bearer = HTTPBearer(auto_error=False)
+security = HTTPBearer(auto_error=False)
 
 
 @asynccontextmanager
@@ -26,19 +26,18 @@ async def lifespan(_app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 app.include_router(
     router=auth_router,
-    dependencies=[Depends(http_bearer)],
+    dependencies=[Depends(security)],
     prefix="/auth",
     tags=["Auth"],
 )
 app.include_router(
     router=clients_router,
-    dependencies=[Depends(http_bearer)],
+    dependencies=[Depends(security)],
     prefix="/clients",
     tags=["Clients"],
 )
 app.include_router(
     router=loops_router,
-    dependencies=[Depends(http_bearer)],
     prefix="/loops",
     tags=["Loops"]
 )
