@@ -1,10 +1,7 @@
 from asyncio import Event
-from typing import Any
 
-from fastapi import APIRouter, WebSocket, Query, WebSocketDisconnect, status
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
-from src.auth.dependencies import get_current_token_payload
-from src.crud import get_client_by_id
 from src.loops.service import get_all_loops
 
 router = APIRouter()
