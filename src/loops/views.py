@@ -7,8 +7,13 @@ from fastapi.websockets import WebSocket, WebSocketDisconnect
 
 from src.auth.dependencies import get_current_token_payload
 from src.crud import get_client_by_id
-from src.loops.schemas import LoopsUpdateResponse
-from src.loops.service import get_all_loops
+from src.loops.schemas import (
+    LoopsUpdateResponse,
+    PlatformsResponse,
+    CurrenciesResponse,
+)
+from src.loops.service import get_all_loops, get_all_platforms, \
+    get_all_currencies
 
 router = APIRouter()
 security = HTTPBearer()
@@ -57,3 +62,13 @@ async def update_endpoint() -> LoopsUpdateResponse:
     update_event.set()
 
     return LoopsUpdateResponse(message="Loops data has been updated.")
+
+
+@router.get(path="/platforms")
+async def get_platforms() -> list[str]:
+    return await get_all_platforms()
+
+
+@router.get(path="/currencies")
+async def get_currencies() -> list[str]:
+    return await get_all_currencies()

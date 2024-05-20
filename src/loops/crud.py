@@ -1,3 +1,5 @@
+from typing import Any
+
 from src.database import database_manager
 
 
@@ -63,5 +65,31 @@ async def get_loops() -> str:
             group by
                 l.id
         ) as ld
+        """
+    )
+
+
+async def get_platforms():
+    pool = await database_manager.get_pool()
+
+    return await pool.fetch(
+        """
+        select
+            name
+        from
+            platforms
+        """
+    )
+
+
+async def get_currencies():
+    pool = await database_manager.get_pool()
+
+    return await pool.fetch(
+        """
+        select
+            name
+        from
+            currencies
         """
     )
