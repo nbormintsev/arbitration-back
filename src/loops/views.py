@@ -1,8 +1,8 @@
 from asyncio import Event
 from typing import Any
 
-from fastapi import APIRouter, Depends
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import APIRouter, Query
+from fastapi.security import HTTPBearer
 from fastapi.websockets import WebSocket, WebSocketDisconnect
 
 from src.auth.dependencies import get_current_token_payload
@@ -21,12 +21,11 @@ loops: list[dict[str, Any]] | None = None
 @router.websocket(path="/ws")
 async def get_loops(
     websocket: WebSocket,
-    credentials: HTTPAuthorizationCredentials = Depends(security)
+    token: str = Query(...)
 ):
     global loops
 
     await websocket.accept()
-    token = credentials.credentials
 
     try:
         token_payload = get_current_token_payload(token)
