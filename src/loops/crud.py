@@ -1,5 +1,3 @@
-from typing import Any
-
 from src.database import database_manager
 
 
@@ -45,7 +43,7 @@ async def get_loops() -> str:
                         'currency_from', cf.name,
                         'currency_to', ct.name,
                         'best_price', c.best_price,
-                        'liquidity_rate', c.liquidity_rate,
+                        'liquidity_rates', c.liquidity_rates,
                         'is_open', c.is_open,
                         'last_update', c.last_update
                     )
