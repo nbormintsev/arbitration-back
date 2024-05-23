@@ -9,11 +9,12 @@ from src.auth.dependencies import get_current_token_payload
 from src.crud import get_client_by_id
 from src.loops.schemas import (
     LoopsUpdateResponse,
-    PlatformsResponse,
-    CurrenciesResponse,
 )
-from src.loops.service import get_all_loops, get_all_platforms, \
-    get_all_currencies
+from src.loops.service import (
+    get_loops,
+    get_platforms,
+    get_currencies,
+)
 
 router = APIRouter()
 security = HTTPBearer()
@@ -24,7 +25,7 @@ loops: list[dict[str, Any]] | None = None
 
 
 @router.websocket(path="/ws")
-async def get_loops(
+async def get_all_loops(
     websocket: WebSocket,
     token: str = Query(...)
 ):
@@ -42,7 +43,7 @@ async def get_loops(
             await websocket.close()
 
         active_connections.append(websocket)
-        loops = await get_all_loops()
+        loops = await get_loops()
         await websocket.send_json(loops)
 
         while True:
@@ -54,21 +55,21 @@ async def get_loops(
         active_connections.remove(websocket)
 
 
-@router.get("/update")
+@router.get(path="/update", response_model=LoopsUpdateResponse)
 async def update_endpoint() -> LoopsUpdateResponse:
     global loops
 
-    loops = await get_all_loops()
+    loops = await get_loops()
     update_event.set()
 
     return LoopsUpdateResponse(message="Loops data has been updated.")
 
 
 @router.get(path="/platforms")
-async def get_platforms() -> list[str]:
-    return await get_all_platforms()
+async def get_all_platforms() -> list[str]:
+    return await get_platforms()
 
 
 @router.get(path="/currencies")
-async def get_currencies() -> list[str]:
-    return await get_all_currencies()
+async def get_all_currencies() -> list[str]:
+    return await get_currencies()

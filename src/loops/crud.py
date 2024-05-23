@@ -1,7 +1,7 @@
 from src.database import database_manager
 
 
-async def get_loops() -> str:
+async def get_all_loops() -> str:
     pool = await database_manager.get_pool()
 
     return await pool.fetchval(
@@ -67,7 +67,7 @@ async def get_loops() -> str:
     )
 
 
-async def get_platforms():
+async def get_all_platforms():
     pool = await database_manager.get_pool()
 
     return await pool.fetch(
@@ -80,7 +80,7 @@ async def get_platforms():
     )
 
 
-async def get_currencies():
+async def get_all_currencies():
     pool = await database_manager.get_pool()
 
     return await pool.fetch(

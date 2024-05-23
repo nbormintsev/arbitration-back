@@ -9,6 +9,7 @@ from fastapi.security import HTTPBearer
 from src.auth.views import router as auth_router
 from src.clients.views import router as clients_router
 from src.loops.views import router as loops_router
+from src.income.views import router as income_router
 from src.security import keys_manager
 from src.database import database_manager
 
@@ -40,6 +41,12 @@ app.include_router(
     router=loops_router,
     prefix="/loops",
     tags=["Loops"]
+)
+app.include_router(
+    router=income_router,
+    dependencies=[Depends(security)],
+    prefix="/income",
+    tags=["Income"]
 )
 
 
