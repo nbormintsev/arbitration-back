@@ -5,7 +5,12 @@ from src.loops.crud import get_all_loops, get_all_platforms, get_all_currencies
 
 
 async def get_loops() -> list[dict[str, Any]]:
-    loops_in_db = await get_all_loops()
+    loops_in_db: str | None = await get_all_loops()
+
+    if not loops_in_db:
+        print('No loops found currently.')
+
+        return []
 
     return json.loads(loops_in_db)
 

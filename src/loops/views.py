@@ -42,17 +42,31 @@ async def get_all_loops(
         if not client_in_db:
             await websocket.close()
 
-        active_connections.append(websocket)
-        loops = await get_loops()
-        await websocket.send_json(loops)
+            return
 
-        while True:
-            await update_event.wait()
-            update_event.clear()
-            await websocket.send_json(loops)
+        active_connections.append(websocket)
+
+        try:
+            loops = await get_loops()
+            update_event.set()
+
+            while True:
+                await update_event.wait()
+                update_event.clear()
+
+                await websocket.send_json(loops)
+
+        except Exception as e:
+            print(f"Exception occurred: {e}")
 
     except WebSocketDisconnect:
         active_connections.remove(websocket)
+
+    finally:
+        if websocket in active_connections:
+            active_connections.remove(websocket)
+
+        await websocket.close()
 
 
 @router.get(path="/update", response_model=LoopsUpdateResponse)
