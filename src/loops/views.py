@@ -3,7 +3,7 @@ from typing import Any
 
 from fastapi import APIRouter, Query
 from fastapi.security import HTTPBearer
-from fastapi.websockets import WebSocket, WebSocketDisconnect
+from fastapi.websockets import WebSocket, WebSocketDisconnect, WebSocketState
 
 from src.auth.dependencies import get_current_token_payload
 from src.crud import get_client_by_id
@@ -27,7 +27,7 @@ loops: list[dict[str, Any]] | None = None
 @router.websocket(path="/ws")
 async def get_all_loops(
     websocket: WebSocket,
-    token: str = Query(...)
+    token: str = Query(...),
 ):
     global loops
 
@@ -45,28 +45,16 @@ async def get_all_loops(
             return
 
         active_connections.append(websocket)
+        loops = await get_loops()
+        update_event.set()
 
-        try:
-            loops = await get_loops()
-            update_event.set()
-
-            while True:
-                await update_event.wait()
-                update_event.clear()
-
-                await websocket.send_json(loops)
-
-        except Exception as e:
-            print(f"Exception occurred: {e}")
+        while True:
+            await update_event.wait()
+            update_event.clear()
+            await websocket.send_json(loops)
 
     except WebSocketDisconnect:
         active_connections.remove(websocket)
-
-    finally:
-        if websocket in active_connections:
-            active_connections.remove(websocket)
-
-        await websocket.close()
 
 
 @router.get(path="/update", response_model=LoopsUpdateResponse)
